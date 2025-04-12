@@ -22,7 +22,7 @@ export default function LoginPage() {
       setIsLoading(true);
       setError(null);
       const result = await signInWithPopup(auth, provider);
-      router.push("/dashboard");
+      router.push("/");
     } catch (error: any) {
       setError(error.message || "Failed to login. Please try again.");
     } finally {

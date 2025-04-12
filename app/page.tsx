@@ -172,7 +172,7 @@ export default function Home() {
         size="lg"
         asChild
       >
-        <Link href="/login">
+        <Link href="/blog">
           <Zap className="h-5 w-5 mr-2" />
           Write Article
         </Link>
