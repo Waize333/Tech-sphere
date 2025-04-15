@@ -1,16 +1,145 @@
+"use client"
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowRight, Code, ExternalLink, Newspaper, TrendingUp, Users, Zap } from "lucide-react";
+import { ArrowRight, Code, ExternalLink, Newspaper, TrendingUp, Users, Zap, User, LogIn } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { AnimatedGlowDots } from "@/components/animated-background";
+import { useState } from "react";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 export default function Home() {
+  // In a real app, you would use an auth context or similar
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
+  
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoggedIn(true);
+    setShowLoginDialog(false);
+  };
+  
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+  };
   return (
     <div className="min-h-screen relative bg-gradient-to-br from-[#05103a] via-[#0a205c] to-[#04102e] text-white">
       {/* Simple gradient overlay for more depth */}
       <div className="absolute inset-0 bg-gradient-radial from-transparent to-black/20 pointer-events-none"></div>
-      
+
+      {/* Diagonally slashed rectangles pattern */}
+      <div
+        className="absolute inset-0 bg-pattern pointer-events-none"
+        aria-hidden="true"
+      ></div>
+
+      {/* Top Navigation Bar */}
+      <nav className="relative z-10 px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="flex items-center">
+            <span className="text-xl font-bold text-white">TechSphere</span>
+          </div>
+          
+          {/* User Icon/Profile Area */}
+          <div>
+            {isLoggedIn ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2 bg-black/20 backdrop-blur-sm rounded-full px-4 py-2 hover:bg-blue-500/20">
+                    <User className="h-5 w-5" />
+                    <span>John Doe</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56 bg-background/90 backdrop-blur-md border-white/10">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer">Profile</DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer">Dashboard</DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer">Settings</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Button 
+                  variant="ghost" 
+                  className="flex items-center gap-2 bg-black/20 backdrop-blur-sm rounded-full px-4 py-2 hover:bg-blue-500/20"
+                  onClick={() => setShowLoginDialog(true)}
+                >
+                  <LogIn className="h-5 w-5" />
+                  <span>Sign In</span>
+                </Button>
+                
+                <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
+                  <DialogContent className="bg-gradient-to-br from-[#060d2e] via-[#091c4a] to-[#051028] border border-white/10 shadow-xl text-white">
+                    <DialogHeader>
+                      <DialogTitle className="text-2xl font-bold text-blue-100">Sign In</DialogTitle>
+                      <DialogDescription className="text-blue-200">
+                        Enter your credentials to access your account
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <form onSubmit={handleLogin} className="space-y-4 mt-4">
+                      <div className="space-y-2">
+                        <label htmlFor="email" className="text-sm font-medium text-blue-100">Email</label>
+                        <Input 
+                          id="email" 
+                          type="email" 
+                          placeholder="example@email.com" 
+                          className="bg-black/30 border-white/10 text-white placeholder:text-blue-300/50 focus:border-blue-400/50 focus:ring-blue-400/20" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor="password" className="text-sm font-medium text-blue-100">Password</label>
+                        <Input 
+                          id="password" 
+                          type="password" 
+                          placeholder="••••••••" 
+                          className="bg-black/30 border-white/10 text-white placeholder:text-blue-300/50 focus:border-blue-400/50 focus:ring-blue-400/20" 
+                        />
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <a href="#" className="text-sm text-blue-300 hover:text-blue-200">Forgot password?</a>
+                        <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">Sign In</Button>
+                      </div>
+                    </form>
+                    
+                    <div className="mt-4 text-center">
+                      <p className="text-sm text-blue-200">
+                        Don't have an account?{" "}
+                        <a href="/signup" className="text-blue-300 hover:text-blue-200 font-medium">
+                          Sign up
+                        </a>
+                      </p>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+
       {/* Hero Section */}
       <header className="relative overflow-hidden pt-10 pb-20 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 space-y-8">
@@ -26,15 +155,7 @@ export default function Home() {
             Your gateway to the future of technology. Share your insights, discover breakthrough innovations, and join a community of tech enthusiasts.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" className="w-full sm:w-auto min-w-40 group bg-blue-500 hover:bg-blue-600 text-white" asChild>
-              <Link href="/articles" className="flex items-center">
-                Start Reading
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </Button>
-            <Button size="lg" variant="outline" className="w-full sm:w-auto min-w-40 bg-white/80 text-black border-white/40 hover:bg-white/10" asChild>
-              <Link href="/login">Sign In</Link>
-            </Button>
+            {/* Buttons */}
           </div>
         </div>
       </header>

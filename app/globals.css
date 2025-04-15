@@ -197,3 +197,25 @@
   background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
   background-size: 30px 30px;
 }
+
+.bg-pattern {
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.05) 0px,
+    rgba(255, 255, 255, 0.05) var(--span, 10px),
+    transparent var(--span, 10px),
+    transparent calc(var(--span, 10px) * 2)
+  );
+  background-size: 40px 40px;
+  z-index: 0;
+  animation: span-animation 5s infinite alternate ease-in-out;
+}
+
+@keyframes span-animation {
+  0% {
+    --span: 5px;
+  }
+  100% {
+    --span: 15px;
+  }
+}
