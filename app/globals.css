@@ -213,9 +213,9 @@
 
 @keyframes span-animation {
   0% {
-    --span: 5px;
+    --span: 11px;
   }
   100% {
-    --span: 15px;
+    --span: 12px;
   }
 }

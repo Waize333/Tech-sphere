@@ -1,5 +1,6 @@
 "use client";
 
+import AuthCheck from "@/components/auth-check";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -188,259 +189,257 @@ export default function CreateArticlePage() {
     }
   };
 
-  if (!user) {
-    return <div className="min-h-screen flex items-center justify-center text-white">Loading...</div>;
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#05103a] via-[#0a205c] to-[#04102e] text-white py-8">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6">
-        <div className="space-y-8">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-white">Create Article</h1>
-              <p className="text-blue-200">Share your tech knowledge with the community</p>
+    <AuthCheck>
+      <div className="min-h-screen bg-gradient-to-br from-[#05103a] via-[#0a205c] to-[#04102e] text-white py-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="space-y-8">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h1 className="text-2xl font-bold text-white">Create Article</h1>
+                <p className="text-blue-200">Share your tech knowledge with the community</p>
+              </div>
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-blue-200">{saveStatus}</span>
+                <Button 
+                  variant="outline" 
+                  onClick={saveDraft} 
+                  disabled={isLoading}
+                  className="border-blue-400 text-blue-500"
+                >
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Draft
+                </Button>
+                <Button 
+                  onClick={publishArticle} 
+                  disabled={isLoading}
+                  className="bg-blue-500 hover:bg-blue-600 text-white"
+                >
+                  <Send className="mr-2 h-4 w-4" />
+                  Publish
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-blue-200">{saveStatus}</span>
-              <Button 
-                variant="outline" 
-                onClick={saveDraft} 
-                disabled={isLoading}
-                className="border-blue-400 text-blue-500"
-              >
-                <Save className="mr-2 h-4 w-4" />
-                Save Draft
-              </Button>
-              <Button 
-                onClick={publishArticle} 
-                disabled={isLoading}
-                className="bg-blue-500 hover:bg-blue-600 text-white"
-              >
-                <Send className="mr-2 h-4 w-4" />
-                Publish
-              </Button>
-            </div>
-          </div>
 
-          {/* Article Form */}
-          <Card className="bg-black/20 backdrop-blur border-white/10 p-6 text-white">
-            <Tabs defaultValue="write" className="space-y-6">
-              <TabsList className="bg-black/20 text-blue-200">
-                <TabsTrigger value="write">Write</TabsTrigger>
-                <TabsTrigger value="preview">Preview</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="write" className="space-y-6">
-                {/* Title */}
-                <div className="space-y-2">
-                  <Label htmlFor="title" className="text-blue-200">Title *</Label>
-                  <Input 
-                    id="title" 
-                    value={title} 
-                    onChange={(e) => setTitle(e.target.value)} 
-                    placeholder="Enter an engaging title"
-                    className="bg-white/5 border-white/10 placeholder:text-gray-400 text-white"
-                  />
-                </div>
+            {/* Article Form */}
+            <Card className="bg-black/20 backdrop-blur border-white/10 p-6 text-white">
+              <Tabs defaultValue="write" className="space-y-6">
+                <TabsList className="bg-black/20 text-blue-200">
+                  <TabsTrigger value="write">Write</TabsTrigger>
+                  <TabsTrigger value="preview">Preview</TabsTrigger>
+                </TabsList>
                 
-                {/* Description */}
-                <div className="space-y-2">
-                  <Label htmlFor="description" className="text-blue-200">Description</Label>
-                  <Textarea 
-                    id="description" 
-                    value={description} 
-                    onChange={(e) => setDescription(e.target.value)} 
-                    placeholder="Write a brief summary of your article (optional)"
-                    className="bg-white/5 border-white/10 placeholder:text-gray-400 text-white"
-                    rows={3}
-                  />
-                </div>
-
-                {/* Cover Image */}
-                <div className="space-y-2">
-                  <Label className="text-blue-200">Cover Image</Label>
-                  <div className="flex items-center space-x-4">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => document.getElementById('cover-image')?.click()}
-                      className="border-blue-400 text-blue-500"
-                    >
-                      <ImagePlus className="mr-2 h-4 w-4" />
-                      Upload Image
-                    </Button>
-                    <input
-                      id="cover-image"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="hidden"
+                <TabsContent value="write" className="space-y-6">
+                  {/* Title */}
+                  <div className="space-y-2">
+                    <Label htmlFor="title" className="text-blue-200">Title *</Label>
+                    <Input 
+                      id="title" 
+                      value={title} 
+                      onChange={(e) => setTitle(e.target.value)} 
+                      placeholder="Enter an engaging title"
+                      className="bg-white/5 border-white/10 placeholder:text-gray-400 text-white"
                     />
-                    {coverImageUrl && (
-                      <div className="relative">
-                        <img 
-                          src={coverImageUrl} 
-                          alt="Cover preview" 
-                          className="h-16 w-24 object-cover rounded"
-                        />
-                        <button 
-                          onClick={() => {
-                            setCoverImage(null);
-                            setCoverImageUrl("");
-                          }}
-                          className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
+                  </div>
+                  
+                  {/* Description */}
+                  <div className="space-y-2">
+                    <Label htmlFor="description" className="text-blue-200">Description</Label>
+                    <Textarea 
+                      id="description" 
+                      value={description} 
+                      onChange={(e) => setDescription(e.target.value)} 
+                      placeholder="Write a brief summary of your article (optional)"
+                      className="bg-white/5 border-white/10 placeholder:text-gray-400 text-white"
+                      rows={3}
+                    />
+                  </div>
+
+                  {/* Cover Image */}
+                  <div className="space-y-2">
+                    <Label className="text-blue-200">Cover Image</Label>
+                    <div className="flex items-center space-x-4">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => document.getElementById('cover-image')?.click()}
+                        className="border-blue-400 text-blue-500"
+                      >
+                        <ImagePlus className="mr-2 h-4 w-4" />
+                        Upload Image
+                      </Button>
+                      <input
+                        id="cover-image"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
+                      {coverImageUrl && (
+                        <div className="relative">
+                          <img 
+                            src={coverImageUrl} 
+                            alt="Cover preview" 
+                            className="h-16 w-24 object-cover rounded"
+                          />
+                          <button 
+                            onClick={() => {
+                              setCoverImage(null);
+                              setCoverImageUrl("");
+                            }}
+                            className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Category */}
+                  <div className="space-y-2">
+                    <Label htmlFor="category" className="text-blue-200">
+                      Category *
+                    </Label>
+                    <Select
+                      onValueChange={(value) => {
+                        if (value === "Other") {
+                          setIsModalOpen(true); // Open the modal
+                        } else {
+                          setCategory(value); // Set the selected category
+                        }
+                      }}
+                      value={category}
+                    >
+                      <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#0a205c] border-white/10 text-white">
+                        {CATEGORIES.map((cat) => (
+                          <SelectItem key={cat} value={cat}>
+                            {cat}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {/* Modal for custom category */}
+                    {isModalOpen && (
+                      <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+                        <div className="bg-[#0a205c] p-6 rounded-lg shadow-lg w-96">
+                          <h2 className="text-lg font-bold text-white mb-4">Specify Category</h2>
+                          <Input
+                            value={customCategory}
+                            onChange={(e) => setCustomCategory(e.target.value)}
+                            placeholder="Enter your category"
+                            className="bg-white/5 border-white/10 placeholder:text-gray-400 text-white mb-4"
+                          />
+                          <div className="flex justify-end space-x-4">
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setIsModalOpen(false); // Close the modal
+                                setCustomCategory(""); // Reset the input
+                              }}
+                              className="border-white/10 text-blue-500"
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                setCategory(customCategory); // Set the custom category
+                                setIsModalOpen(false); // Close the modal
+                              }}
+                              className="bg-blue-500 hover:bg-blue-600 text-white"
+                            >
+                              Save
+                            </Button>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
-                </div>
 
-                {/* Category */}
-                <div className="space-y-2">
-                  <Label htmlFor="category" className="text-blue-200">
-                    Category *
-                  </Label>
-                  <Select
-                    onValueChange={(value) => {
-                      if (value === "Other") {
-                        setIsModalOpen(true); // Open the modal
-                      } else {
-                        setCategory(value); // Set the selected category
-                      }
-                    }}
-                    value={category}
-                  >
-                    <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#0a205c] border-white/10 text-white">
-                      {CATEGORIES.map((cat) => (
-                        <SelectItem key={cat} value={cat}>
-                          {cat}
-                        </SelectItem>
+                  {/* Tags */}
+                  <div className="space-y-2">
+                    <Label htmlFor="tags" className="text-blue-200">Tags (max 5)</Label>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {tags.map((tag) => (
+                        <Badge key={tag} className="bg-blue-500 hover:bg-blue-600 text-white">
+                          {tag}
+                          <button onClick={() => removeTag(tag)} className="ml-1">
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
                       ))}
-                    </SelectContent>
-                  </Select>
-
-                  {/* Modal for custom category */}
-                  {isModalOpen && (
-                    <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-                      <div className="bg-[#0a205c] p-6 rounded-lg shadow-lg w-96">
-                        <h2 className="text-lg font-bold text-white mb-4">Specify Category</h2>
-                        <Input
-                          value={customCategory}
-                          onChange={(e) => setCustomCategory(e.target.value)}
-                          placeholder="Enter your category"
-                          className="bg-white/5 border-white/10 placeholder:text-gray-400 text-white mb-4"
-                        />
-                        <div className="flex justify-end space-x-4">
-                          <Button
-                            variant="outline"
-                            onClick={() => {
-                              setIsModalOpen(false); // Close the modal
-                              setCustomCategory(""); // Reset the input
-                            }}
-                            className="border-white/10 text-blue-500"
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            onClick={() => {
-                              setCategory(customCategory); // Set the custom category
-                              setIsModalOpen(false); // Close the modal
-                            }}
-                            className="bg-blue-500 hover:bg-blue-600 text-white"
-                          >
-                            Save
-                          </Button>
-                        </div>
-                      </div>
                     </div>
-                  )}
-                </div>
-
-                {/* Tags */}
-                <div className="space-y-2">
-                  <Label htmlFor="tags" className="text-blue-200">Tags (max 5)</Label>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {tags.map((tag) => (
-                      <Badge key={tag} className="bg-blue-500 hover:bg-blue-600 text-white">
-                        {tag}
-                        <button onClick={() => removeTag(tag)} className="ml-1">
-                          <X className="h-3 w-3" />
-                        </button>
-                      </Badge>
-                    ))}
+                    <div className="flex space-x-2">
+                      <Input 
+                        id="tags" 
+                        value={tagInput} 
+                        onChange={(e) => setTagInput(e.target.value)} 
+                        placeholder="Add a tag"
+                        className="bg-white/5 border-white/10 placeholder:text-gray-400 text-white"
+                        onKeyDown={(e) => e.key === 'Enter' && addTag()}
+                      />
+                      <Button 
+                        onClick={addTag} 
+                        disabled={!tagInput || tags.length >= 5}
+                        variant="secondary"
+                        className="<text-blue-5></text-blue-500"
+                      >
+                        Add
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex space-x-2">
-                    <Input 
-                      id="tags" 
-                      value={tagInput} 
-                      onChange={(e) => setTagInput(e.target.value)} 
-                      placeholder="Add a tag"
-                      className="bg-white/5 border-white/10 placeholder:text-gray-400 text-white"
-                      onKeyDown={(e) => e.key === 'Enter' && addTag()}
-                    />
-                    <Button 
-                      onClick={addTag} 
-                      disabled={!tagInput || tags.length >= 5}
-                      variant="secondary"
-                      className="<text-blue-5></text-blue-500"
-                    >
-                      Add
-                    </Button>
-                  </div>
-                </div>
 
-                {/* Content Editor */}
-                <div className="space-y-2">
-                  <Label htmlFor="content" className="text-blue-200">Content *</Label>
-                  <div className="min-h-[400px] border border-white/10 rounded-md overflow-hidden">
-                    <Editor 
-                      initialContent="" 
-                      onChange={setContent} 
-                    />
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="preview" className="space-y-6">
-                {/* Article Preview */}
-                <div className="bg-white/5 border border-white/10 rounded-lg p-6 min-h-[400px] text-white">
-                  {title ? (
-                    <h1 className="text-3xl font-bold mb-4">{title}</h1>
-                  ) : (
-                    <p className="text-gray-400">Add a title to see preview</p>
-                  )}
-                  
-                  {coverImageUrl && (
-                    <div className="my-4">
-                      <img 
-                        src={coverImageUrl} 
-                        alt="Cover" 
-                        className="w-full h-64 object-cover rounded-lg"
+                  {/* Content Editor */}
+                  <div className="space-y-2">
+                    <Label htmlFor="content" className="text-blue-200">Content *</Label>
+                    <div className="min-h-[400px] border border-white/10 rounded-md overflow-hidden">
+                      <Editor 
+                        initialContent="" 
+                        onChange={setContent} 
                       />
                     </div>
-                  )}
-                  
-                  {description && (
-                    <p className="text-lg text-blue-100 mb-4">{description}</p>
-                  )}
-                  
-                  {content ? (
-                    <div className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: content }} />
-                  ) : (
-                    <p className="text-gray-400">Start writing in the editor to see preview</p>
-                  )}
-                </div>
-              </TabsContent>
-            </Tabs>
-          </Card>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="preview" className="space-y-6">
+                  {/* Article Preview */}
+                  <div className="bg-white/5 border border-white/10 rounded-lg p-6 min-h-[400px] text-white">
+                    {title ? (
+                      <h1 className="text-3xl font-bold mb-4">{title}</h1>
+                    ) : (
+                      <p className="text-gray-400">Add a title to see preview</p>
+                    )}
+                    
+                    {coverImageUrl && (
+                      <div className="my-4">
+                        <img 
+                          src={coverImageUrl} 
+                          alt="Cover" 
+                          className="w-full h-64 object-cover rounded-lg"
+                        />
+                      </div>
+                    )}
+                    
+                    {description && (
+                      <p className="text-lg text-blue-100 mb-4">{description}</p>
+                    )}
+                    
+                    {content ? (
+                      <div className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: content }} />
+                    ) : (
+                      <p className="text-gray-400">Start writing in the editor to see preview</p>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </Card>
+          </div>
         </div>
       </div>
-    </div>
+    </AuthCheck>
   );
 }

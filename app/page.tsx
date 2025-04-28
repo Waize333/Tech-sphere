@@ -1,11 +1,13 @@
 "use client"
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowRight, Code, ExternalLink, Newspaper, TrendingUp, Users, Zap, User, LogIn } from "lucide-react";
+import { ArrowRight, Code, ExternalLink, Newspaper, TrendingUp, Users, Zap, User, LogIn, LogOut } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { AnimatedGlowDots } from "@/components/animated-background";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { auth } from "@/lib/firebase"; // Import Firebase auth
+import { signOut } from "firebase/auth"; // Import signOut function
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -26,174 +28,193 @@ import {
 import { Input } from "@/components/ui/input";
 
 export default function Home() {
-  // In a real app, you would use an auth context or similar
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const router = useRouter();
   const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoggedIn(true);
-    setShowLoginDialog(false);
-  };
+  // Listen for auth state changes
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+    
+    return () => unsubscribe();
+  }, []);
   
-  const handleLogout = () => {
-    setIsLoggedIn(false);
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.push("/"); // Stay on homepage after logout
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
-  return (
-    <div className="min-h-screen relative bg-gradient-to-br from-[#05103a] via-[#0a205c] to-[#04102e] text-white">
-      {/* Simple gradient overlay for more depth */}
-      <div className="absolute inset-0 bg-gradient-radial from-transparent to-black/20 pointer-events-none"></div>
 
-      {/* Diagonally slashed rectangles pattern */}
-      <div
-        className="absolute inset-0 bg-pattern pointer-events-none"
-        aria-hidden="true"
-      ></div>
+  return (
+    <div className="relative min-h-screen">
+      {/* Professional sloping gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-[#0f172a] to-slate-900 -z-10"></div>
+      
+      {/* Subtle diagonal accent */}
+      <div className="absolute inset-0 overflow-hidden -z-10">
+        <div className="absolute -top-[10%] right-0 w-[80%] h-[50%] bg-gradient-to-b from-blue-500/10 to-transparent transform rotate-12 blur-3xl"></div>
+        <div className="absolute top-[40%] -left-[10%] w-[60%] h-[30%] bg-gradient-to-tr from-cyan-500/10 to-transparent transform -rotate-12 blur-3xl"></div>
+      </div>
 
       {/* Top Navigation Bar */}
-      <nav className="relative z-10 px-4 sm:px-6 lg:px-8 py-4">
+      <nav className="sticky top-0 z-50 backdrop-blur-md bg-slate-900/70 border-b border-white/5 px-4 sm:px-6 lg:px-8 py-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center">
-            <span className="text-xl font-bold text-white">TechSphere</span>
+            <Link href="/" className="text-xl font-bold text-white hover:text-blue-300 transition">
+              TechSphere
+            </Link>
+            <div className="hidden md:flex ml-10 space-x-8">
+              <Link href="/articles" className="text-sm text-gray-300 hover:text-white">Articles</Link>
+              <Link href="/topics" className="text-sm text-gray-300 hover:text-white">Topics</Link>
+              <Link href="/about" className="text-sm text-gray-300 hover:text-white">About</Link>
+            </div>
           </div>
           
           {/* User Icon/Profile Area */}
           <div>
-            {isLoggedIn ? (
+            {loading ? (
+              // Loading state
+              <div className="w-10 h-10 rounded-full bg-white/10 animate-pulse"></div>
+            ) : user ? (
+              // User is logged in - Show profile dropdown
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2 bg-black/20 backdrop-blur-sm rounded-full px-4 py-2 hover:bg-blue-500/20">
-                    <User className="h-5 w-5" />
-                    <span>John Doe</span>
+                  <Button variant="ghost" className="flex items-center gap-2 bg-white/5 hover:bg-white/10 rounded-full px-4 py-2">
+                    {user.photoURL ? (
+                      <Image 
+                        src={user.photoURL}
+                        alt="Profile"
+                        width={20} 
+                        height={20} 
+                        className="rounded-full"
+                      />
+                    ) : (
+                      <User className="h-5 w-5" />
+                    )}
+                    <span>{user.displayName || 'User'}</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 bg-background/90 backdrop-blur-md border-white/10">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer">Profile</DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer">Dashboard</DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer">Settings</DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
+                <DropdownMenuContent className="w-56 bg-slate-800 border border-white/10">
+                  <DropdownMenuLabel className="text-gray-200">My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuItem 
+                    className="cursor-pointer text-gray-200 hover:bg-slate-700 focus:bg-slate-700"
+                    onClick={() => router.push('/profile')}
+                  >
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className="cursor-pointer text-gray-200 hover:bg-slate-700 focus:bg-slate-700"
+                    onClick={() => router.push('/dashboard')}
+                  >
+                    Dashboard
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className="cursor-pointer text-gray-200 hover:bg-slate-700 focus:bg-slate-700"
+                    onClick={() => router.push('/blog')}
+                  >
+                    Create Article
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuItem 
+                    className="cursor-pointer text-red-300 hover:bg-red-900/30 focus:bg-red-900/30" 
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
                     Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <>
-                <Button 
-                  variant="ghost" 
-                  className="flex items-center gap-2 bg-black/20 backdrop-blur-sm rounded-full px-4 py-2 hover:bg-blue-500/20"
-                  onClick={() => setShowLoginDialog(true)}
-                >
-                  <LogIn className="h-5 w-5" />
-                  <span>Sign In</span>
-                </Button>
-                
-                <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
-                  <DialogContent className="bg-gradient-to-br from-[#060d2e] via-[#091c4a] to-[#051028] border border-white/10 shadow-xl text-white">
-                    <DialogHeader>
-                      <DialogTitle className="text-2xl font-bold text-blue-100">Sign In</DialogTitle>
-                      <DialogDescription className="text-blue-200">
-                        Enter your credentials to access your account
-                      </DialogDescription>
-                    </DialogHeader>
-                    
-                    <form onSubmit={handleLogin} className="space-y-4 mt-4">
-                      <div className="space-y-2">
-                        <label htmlFor="email" className="text-sm font-medium text-blue-100">Email</label>
-                        <Input 
-                          id="email" 
-                          type="email" 
-                          placeholder="example@email.com" 
-                          className="bg-black/30 border-white/10 text-white placeholder:text-blue-300/50 focus:border-blue-400/50 focus:ring-blue-400/20" 
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label htmlFor="password" className="text-sm font-medium text-blue-100">Password</label>
-                        <Input 
-                          id="password" 
-                          type="password" 
-                          placeholder="••••••••" 
-                          className="bg-black/30 border-white/10 text-white placeholder:text-blue-300/50 focus:border-blue-400/50 focus:ring-blue-400/20" 
-                        />
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <a href="#" className="text-sm text-blue-300 hover:text-blue-200">Forgot password?</a>
-                        <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">Sign In</Button>
-                      </div>
-                    </form>
-                    
-                    <div className="mt-4 text-center">
-                      <p className="text-sm text-blue-200">
-                        Don't have an account?{" "}
-                        <a href="/signup" className="text-blue-300 hover:text-blue-200 font-medium">
-                          Sign up
-                        </a>
-                      </p>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </>
+              // User is not logged in - Show login button
+              <Button 
+                variant="ghost" 
+                className="flex items-center gap-2 bg-white/5 hover:bg-white/10 rounded-full px-4 py-2"
+                onClick={() => router.push('/login')}
+              >
+                <LogIn className="h-5 w-5" />
+                <span>Sign In</span>
+              </Button>
             )}
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <header className="relative overflow-hidden pt-10 pb-20 md:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 space-y-8">
+      {/* Hero Section - Simplified and professional */}
+      <header className="relative py-16 md:py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 space-y-8">
           <div className="flex items-center justify-center mb-6">
-            <span className="px-3 py-1 text-xs font-medium text-white bg-primary/20 rounded-full backdrop-blur-sm">
-              Tech Blog Platform
+            <span className="px-3 py-1 text-xs font-medium text-blue-300 bg-blue-900/30 rounded-full">
+              Developer Community
             </span>
           </div>
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-blue-200 leading-tight">
-            Welcome to TechSphere
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-center text-white leading-tight">
+            Welcome to <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">TechSphere</span>
           </h1>
-          <p className="text-xl text-center text-blue-100 max-w-3xl mx-auto">
+          <p className="text-xl text-center text-gray-300 max-w-3xl mx-auto">
             Your gateway to the future of technology. Share your insights, discover breakthrough innovations, and join a community of tech enthusiasts.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            {/* Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+            <Button 
+              size="lg" 
+              className="bg-blue-600 hover:bg-blue-700 text-white" 
+              onClick={() => user ? router.push('/blog') : router.push('/login')}
+            >
+              Start Writing <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="border-gray-600 text-gray-300 hover:bg-gray-800"
+              onClick={() => router.push('/articles')}
+            >
+              Explore Articles
+            </Button>
           </div>
         </div>
       </header>
 
-      {/* Features Section */}
-      <section className="relative py-20 bg-black/10 backdrop-blur-sm">
+      {/* Features Section - More professional */}
+      <section className="py-20 border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4 text-white">Why Choose TechSphere</h2>
-            <p className="text-blue-100 max-w-2xl mx-auto">
+            <p className="text-gray-300 max-w-2xl mx-auto">
               Our platform is designed to inspire and connect tech enthusiasts through quality content and community engagement.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="p-6 space-y-4 bg-black/20 backdrop-blur border-primary/5 shadow-lg text-white">
-              <div className="h-12 w-12 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                <Zap className="h-6 w-6 text-blue-300" />
+            <Card className="p-6 space-y-4 bg-slate-800/50 border-slate-700 text-white">
+              <div className="h-12 w-12 rounded-lg bg-blue-600/20 flex items-center justify-center">
+                <Zap className="h-6 w-6 text-blue-400" />
               </div>
               <h3 className="text-xl font-semibold text-white">Cutting-edge Topics</h3>
-              <p className="text-blue-100">
+              <p className="text-gray-300">
                 Explore the latest in AI, blockchain, quantum computing, and more.
               </p>
             </Card>
-            <Card className="p-6 space-y-4 bg-black/20 backdrop-blur border-primary/5 shadow-lg text-white">
-              <div className="h-12 w-12 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                <Newspaper className="h-6 w-6 text-blue-300" />
+            <Card className="p-6 space-y-4 bg-slate-800/50 border-slate-700 text-white">
+              <div className="h-12 w-12 rounded-lg bg-blue-600/20 flex items-center justify-center">
+                <Newspaper className="h-6 w-6 text-blue-400" />
               </div>
               <h3 className="text-xl font-semibold text-white">Quality Content</h3>
-              <p className="text-blue-100">
+              <p className="text-gray-300">
                 Curated articles from tech experts and enthusiasts worldwide.
               </p>
             </Card>
-            <Card className="p-6 space-y-4 bg-black/20 backdrop-blur border-primary/5 shadow-lg text-white">
-              <div className="h-12 w-12 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                <TrendingUp className="h-6 w-6 text-blue-300" />
+            <Card className="p-6 space-y-4 bg-slate-800/50 border-slate-700 text-white">
+              <div className="h-12 w-12 rounded-lg bg-blue-600/20 flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-blue-400" />
               </div>
               <h3 className="text-xl font-semibold text-white">Growing Community</h3>
-              <p className="text-blue-100">
+              <p className="text-gray-300">
                 Join thousands of tech professionals and enthusiasts.
               </p>
             </Card>
@@ -202,18 +223,18 @@ export default function Home() {
       </section>
 
       {/* Topics Section */}
-      <section className="py-20">
+      <section className="py-20 border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4 text-white">Popular Topics</h2>
-            <p className="text-blue-100 max-w-2xl mx-auto">
+            <p className="text-gray-300 max-w-2xl mx-auto">
               Explore articles across various technology domains
             </p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {['Artificial Intelligence', 'Web Development', 'Cybersecurity', 'Cloud Computing', 
               'Mobile Development', 'DevOps', 'Data Science', 'Blockchain'].map((topic) => (
-              <Card key={topic} className="flex items-center justify-center p-4 text-center bg-background/40 backdrop-blur-sm hover:bg-blue-500/10 transition-colors cursor-pointer">
+              <Card key={topic} className="flex items-center justify-center p-4 text-center bg-slate-800/50 hover:bg-slate-700/70 transition-colors cursor-pointer border-slate-700">
                 <p className="font-medium text-white">{topic}</p>
               </Card>
             ))}
@@ -222,21 +243,20 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="relative py-16 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-white/5 z-0" />
+      <section className="relative py-16 border-t border-white/5">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="bg-background/40 backdrop-blur-md p-8 md:p-12 rounded-2xl shadow-xl border border-white/10">
+          <div className="bg-gradient-to-r from-blue-900/40 to-slate-800/80 p-8 md:p-12 rounded-lg shadow-xl border border-white/10">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-white">Ready to contribute?</h2>
-              <p className="mt-4 text-gray-200">
+              <p className="mt-4 text-gray-300">
                 Share your knowledge and insights with our growing tech community
               </p>
             </div>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button size="lg" className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white" asChild>
+              <Button size="lg" className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white" asChild>
                 <Link href="/signup">Create an Account</Link>
               </Button>
-              <Button size="lg" variant="outline" className="w-full sm:w-auto bg-white/80 text-gray-600 border-white/40 hover:bg-white/10" asChild>
+              <Button size="lg" variant="outline" className="w-full sm:w-auto border-gray-500 text-gray-300 hover:bg-gray-800" asChild>
                 <Link href="/articles">Browse Articles</Link>
               </Button>
             </div>
@@ -245,59 +265,73 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-background/10 backdrop-blur-sm py-12">
+      <footer className="bg-slate-900 py-12 border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
               <h3 className="text-lg font-semibold mb-4 text-white">TechSphere</h3>
-              <p className="text-blue-100">
+              <p className="text-gray-400">
                 A modern platform for tech enthusiasts and professionals to share knowledge and ideas.
               </p>
             </div>
             <div>
               <h3 className="text-lg font-semibold mb-4 text-white">Quick Links</h3>
               <ul className="space-y-2">
-                <li><Link href="/articles" className="text-blue-200 hover:text-white">Articles</Link></li>
-                <li><Link href="/topics" className="text-blue-200 hover:text-white">Topics</Link></li>
-                <li><Link href="/about" className="text-blue-200 hover:text-white">About Us</Link></li>
-                <li><Link href="/contact" className="text-blue-200 hover:text-white">Contact</Link></li>
+                <li><Link href="/articles" className="text-gray-400 hover:text-white">Articles</Link></li>
+                <li><Link href="/topics" className="text-gray-400 hover:text-white">Topics</Link></li>
+                <li><Link href="/about" className="text-gray-400 hover:text-white">About Us</Link></li>
+                <li><Link href="/contact" className="text-gray-400 hover:text-white">Contact</Link></li>
               </ul>
             </div>
             <div>
               <h3 className="text-lg font-semibold mb-4 text-white">Connect</h3>
               <div className="flex space-x-4">
-                <Link href="#" className="text-blue-200 hover:text-white">
+                <Link href="#" className="text-gray-400 hover:text-white">
                   <span className="sr-only">Twitter</span>
                   <ExternalLink className="h-6 w-6" />
                 </Link>
-                <Link href="#" className="text-blue-200 hover:text-white">
+                <Link href="#" className="text-gray-400 hover:text-white">
                   <span className="sr-only">GitHub</span>
                   <Code className="h-6 w-6" />
                 </Link>
-                <Link href="#" className="text-blue-200 hover:text-white">
+                <Link href="#" className="text-gray-400 hover:text-white">
                   <span className="sr-only">Discord</span>
                   <Users className="h-6 w-6" />
                 </Link>
               </div>
             </div>
           </div>
-          <div className="mt-12 border-t border-white/10 pt-8 text-center text-sm text-blue-200">
+          <div className="mt-12 border-t border-white/10 pt-8 text-center text-sm text-gray-400">
             <p>© {new Date().getFullYear()} TechSphere. All rights reserved.</p>
           </div>
         </div>
       </footer>
 
-      {/* Floating Create Button */}
-      <Button
-        className="fixed bottom-8 right-8 rounded-full shadow-lg bg-blue-500 hover:bg-blue-600 text-white border-white/10"
-        size="lg"
-        asChild
-      >
-        <Link href="/blog">
-          <Zap className="h-5 w-5 mr-2" />
-          Write Article
-        </Link>
-      </Button>
+      {/* Floating Create Button - Only show if user is not logged in */}
+      {!loading && !user && (
+        <Button
+          className="fixed bottom-8 right-8 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700 text-white"
+          size="lg"
+          onClick={() => router.push('/login')}
+        >
+          <LogIn className="h-5 w-5 mr-2" />
+          Sign In to Write
+        </Button>
+      )}
+      
+      {/* Floating Create Button - Only show if user is logged in */}
+      {!loading && user && (
+        <Button
+          className="fixed bottom-8 right-8 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700 text-white"
+          size="lg"
+          asChild
+        >
+          <Link href="/blog">
+            <Zap className="h-5 w-5 mr-2" />
+            Write Article
+          </Link>
+        </Button>
+      )}
     </div>
   );
 }
